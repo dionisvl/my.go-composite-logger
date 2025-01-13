@@ -1,8 +1,9 @@
 package main
 
 import (
-	"dionisvl/my.go-composite-logger/config"
-	"dionisvl/my.go-composite-logger/logger"
+	"project-root/internal/config"
+	"project-root/internal/logger"
+
 	sentryhttp "github.com/getsentry/sentry-go/http"
 	"log"
 	"net/http"

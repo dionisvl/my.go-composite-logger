@@ -1,4 +1,4 @@
-module dionisvl/my.go-composite-logger
+module project-root
 
 go 1.23
 

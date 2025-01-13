@@ -13,7 +13,7 @@ This project demonstrates a composite logger implementation in Go. The logger su
 
 ### Prerequisites
 - Docker and Docker Compose
-- Go 1.24 or later
+- Go 1.23 or later
 
 ### Installation
 1. Clone the repository:
@@ -40,22 +40,32 @@ This project demonstrates a composite logger implementation in Go. The logger su
   ```bash
   make down
   ```
+  
 
 ## Project Structure
 ```
 project-root/
-├── logger/
-│   ├── logger.go              # Interface for logger
-│   ├── standard_logger.go     # Standard logger implementation
-│   ├── sentry_logger.go       # Sentry logger implementation
-│   ├── composite_logger.go    # Composite logger implementation
-├── config/
-│   ├── config.go              # Configuration loader
-├── main.go                    # Main application entry point
-├── go.mod                     # Go modules definition
-├── Makefile                   # Makefile for automation
-├── Dockerfile                 # Dockerfile for building the app
-├── docker-compose.yml         # Docker Compose configuration
-├── .env.override              # Environment variables for overriding
-└── README.md                  # Project documentation
+├── build/
+│   ├── ci/
+│   │   └── .keep                # Placeholder for CI-related configurations
+│   └── package/
+│       └── .keep               # Placeholder for packaging configurations
+├── cmd/                        # is the standard location for entry points.
+│   └── app/
+│       └── main.go             # Entry point for the application
+├── configs/
+│   └── .env                    # Environment default variables
+├── deployments/
+│   └── compose.yml             # Docker Compose configuration
+├── internal/                   # for private code
+│   ├── config/
+│   │   └── config.go           # Configuration loader
+│   └── logger/
+│       ├── composite_logger.go # Composite logger implementation
+│       ├── logger.go           # Logger interface and log level definitions
+│       ├── sentry_logger.go    # Sentry logger implementation
+│       └── standard_logger.go  # Standard console logger implementation
+├── Dockerfile                  # Dockerfile for building the application
+├── Makefile                    # Makefile for automation tasks
+└── README.md                   # Project documentation
 ```
