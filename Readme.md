@@ -48,6 +48,14 @@ go vet ./...
 go test ./... -cover
 ```
 
+Tooling on a clean machine:
+```bash
+brew install go
+echo 'export PATH="$PATH:$(go env GOPATH)/bin"' >> ~/.zshrc
+go install github.com/securego/gosec/v2/cmd/gosec@v2.25.0
+GOTOOLCHAIN=go1.26.1 go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
+```
+
 CI: GitHub Actions `.github/workflows/ci.yml`
 - Tests + coverage
 - go vet, gosec, govulncheck
@@ -58,4 +66,3 @@ Coverage: logger 75%, security 79%
 ## Go Version
 
 Go 1.26.1
-
