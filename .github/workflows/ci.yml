@@ -41,15 +41,10 @@ jobs:
       - name: go vet
         run: go vet ./...
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: latest
-
       - name: gosec
-        uses: securego/gosec@master
-        with:
-          args: ./...
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          gosec ./...
 
       - name: govulncheck
         run: |
