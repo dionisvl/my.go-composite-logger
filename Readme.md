@@ -1,71 +1,48 @@
-# Go-composite-logger (with Sentry as example)
+# Go Logger
 
-## Description
-This project demonstrates a composite logger implementation in Go. The logger supports standard console logging and integrates with Sentry for error tracking.
+Composite logger implementation with Sentry integration and structured logging via `log/slog`.
 
-## Features
-- Composite logger (console + Sentry)
-- Configurable log levels
-- Easy to extend to another logger
-- Automatic HTTP transaction tracing with Sentry
+## Architecture
 
-## Setup
-
-### Prerequisites
-- Docker and Docker Compose
-- Go 1.23 or later
-
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/dionisvl/my.go-composite-logger.git
-   cd go-composite-logger
-   ```
-
-2. Create an `.env.override` file and fill variables:
-   ```
-   USE_SENTRY=true
-   SENTRY_DSN=https://your_sentry_dsn@sentry.io/123456
-   ```
-
-3. Build and run the application using Docker Compose:
-   ```bash
-   make up
-   ```
-
-4. Access the application at [http://localhost:8080/hello](http://localhost:8080/hello).
-
-## Usage
-- To stop the application:
-  ```bash
-  make down
-  ```
-  
-
-## Project Structure
 ```
-project-root/
-├── build/
-│   ├── ci/
-│   │   └── .keep                # Placeholder for CI-related configurations
-│   └── package/
-│       └── .keep               # Placeholder for packaging configurations
-├── cmd/                        # is the standard location for entry points.
-│   └── app/
-│       └── main.go             # Entry point for the application
-├── configs/
-│   └── .env                    # Environment default variables
-├── deployments/
-│   └── compose.yml             # Docker Compose configuration
-├── internal/                   # for private code
-│   ├── config/
-│   │   └── config.go           # Configuration loader
-│   └── logger/
-│       ├── composite_logger.go # Composite logger implementation
-│       ├── logger.go           # Logger interface and log level definitions
-│       ├── sentry_logger.go    # Sentry logger implementation
-│       └── standard_logger.go  # Standard console logger implementation
-├── Dockerfile                  # Dockerfile for building the application
-├── Makefile                    # Makefile for automation tasks
-└── README.md                   # Project documentation
+.
+├── Dockerfile              # Multi-stage build (test + binary)
+├── Makefile                # Docker commands
+├── cmd/app/main.go         # HTTP server + middleware
+├── internal/
+│   ├── config/             # .env loading
+│   ├── logger/             # slog + Sentry handler
+│   └── security/           # HTTP middleware
+└── go.mod
 ```
+
+## Logger
+
+- Structured logging via `log/slog` (Go 1.21+)
+- Auto Sentry integration (if `SENTRY_DSN` env set)
+- Fanout to multiple handlers via `slog-multi`
+- Removed 3 custom files (CompositeLogger, StandardLogger, SentryLogger)
+
+## Middleware
+
+| Middleware | Purpose |
+|-----------|---------|
+| `RateLimitMiddleware` | Per-IP rate limiting (10 req/min) |
+| `MaxBodySizeMiddleware` | Limit request body (64 KB) |
+| `LoggingMiddleware` | Structured request logging |
+
+## Docker
+
+Multi-stage Dockerfile:
+- Stage 1: Run tests + build binary
+- Stage 2: Alpine image (~10 MB)
+
+## Testing
+
+```bash
+go test ./... -v
+go test ./... -cover
+```
+
+Coverage: logger 75%, security 79%
+
