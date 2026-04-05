@@ -1,51 +1,47 @@
 package main
 
 import (
+	"net/http"
 	"project-root/internal/config"
 	"project-root/internal/logger"
+	"project-root/internal/security"
+	"time"
 
 	sentryhttp "github.com/getsentry/sentry-go/http"
-	"log"
-	"net/http"
-	"time"
+	"github.com/getsentry/sentry-go"
 )
 
 func main() {
 	config.LoadEnv()
 
-	stdLogger := logger.NewStandardLogger()
-	var loggers []logger.Logger
-	loggers = append(loggers, stdLogger)
+	log := logger.New(config.GetSentryDSN())
+	defer sentry.Flush(2 * time.Second)
 
-	var sentryHandler *sentryhttp.Handler
+	log.Info("App started")
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+		log.Info("1_helloInfo")
+		log.Warn("2_hellowarning")
+		w.Write([]byte("Hello, World!"))
+	})
+
+	// Stack middleware: rate limit -> body size -> logging
+	var handler http.Handler = mux
+	handler = security.RateLimitMiddleware(10)(handler)
+	handler = security.MaxBodySizeMiddleware(security.MaxBodySize)(handler)
+	handler = security.LoggingMiddleware(log)(handler)
+
+	// Wrap with Sentry HTTP handler if enabled
+	var finalHandler http.Handler = handler
 	if config.IsSentryEnabled() {
-		sentryLogger := logger.NewSentryLogger(config.GetSentryDSN())
-		defer sentryLogger.Flush()
-		loggers = append(loggers, sentryLogger)
-
-		sentryHandler = sentryhttp.New(sentryhttp.Options{
+		sentryHandler := sentryhttp.New(sentryhttp.Options{
 			Repanic:         true,
 			WaitForDelivery: true,
 			Timeout:         2 * time.Second,
 		})
-		log.Println("Sentry enabled and logger initialized successfully.")
+		finalHandler = sentryHandler.Handle(handler)
 	}
 
-	compositeLogger := logger.NewCompositeLogger(loggers)
-
-	compositeLogger.SetLevel(logger.DEBUG)
-	compositeLogger.Info("App started")
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		compositeLogger.Info("1_helloInfo")
-		compositeLogger.Warn("2_hellowarning")
-		w.Write([]byte("Hello, World!"))
-	})
-
-	if sentryHandler != nil {
-		http.ListenAndServe(":8080", sentryHandler.Handle(mux))
-	} else {
-		http.ListenAndServe(":8080", mux)
-	}
+	http.ListenAndServe(":8080", finalHandler)
 }

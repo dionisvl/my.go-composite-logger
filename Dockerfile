@@ -1,7 +1,18 @@
-FROM golang:1.23-alpine
+FROM golang:1.26.1-alpine AS builder
+
 WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
 COPY . .
-RUN apk add --no-cache bash
-RUN go mod tidy
-RUN go build -o app_binary ./cmd/app/main.go
-CMD ["./app_binary"]
+RUN go test ./... -v
+RUN CGO_ENABLED=0 GOOS=linux go build -o app ./cmd/app/main.go
+
+FROM alpine:latest
+
+RUN apk add --no-cache ca-certificates
+WORKDIR /app
+COPY --from=builder /app/app .
+
+EXPOSE 8080
+CMD ["./app"]

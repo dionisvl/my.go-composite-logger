@@ -1,3 +1,7 @@
+.PHONY: build up down logs test shell clean
+
+build:
+	docker compose build
 
 up:
 	docker compose up -d
@@ -5,8 +9,14 @@ up:
 down:
 	docker compose down
 
-build:
-	docker compose up --build -d
+logs:
+	docker compose logs -f
 
-sh:
-	docker compose exec app /bin/sh
+shell:
+	docker compose exec app sh
+
+test:
+	docker compose run --rm app go test ./... -v
+
+clean:
+	docker compose down --rmi local
