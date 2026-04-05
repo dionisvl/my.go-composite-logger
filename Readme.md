@@ -8,6 +8,8 @@ Composite logger implementation with Sentry integration and structured logging v
 .
 ├── Dockerfile              # Multi-stage build (test + binary)
 ├── Makefile                # Docker commands
+├── compose.yml             # Docker Compose config
+├── .github/workflows/ci.yml # GitHub Actions CI
 ├── cmd/app/main.go         # HTTP server + middleware
 ├── internal/
 │   ├── config/             # .env loading
@@ -37,12 +39,23 @@ Multi-stage Dockerfile:
 - Stage 1: Run tests + build binary
 - Stage 2: Alpine image (~10 MB)
 
-## Testing
+## Testing & CI
 
+Local:
 ```bash
 go test ./... -v
+go vet ./...
 go test ./... -cover
 ```
 
+CI: GitHub Actions `.github/workflows/ci.yml`
+- Tests + coverage
+- go vet, gosec, govulncheck
+- Docker build
+
 Coverage: logger 75%, security 79%
+
+## Go Version
+
+Go 1.26.1
 
